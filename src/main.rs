@@ -44,9 +44,31 @@ impl GameState {
         state.snake.push_front(start_tile);
         state
     }
+
+    fn set_direction(self: &mut GameState, direction: Direction) {
+        self.direction = direction;
+    }
+
+    fn move_snake(self: &mut GameState) {
+        let (dx, dy) = match self.direction {
+            Direction::Up => (0, -1),
+            Direction::Down => (0, 1),
+            Direction::Left => (-1, 0),
+            Direction::Right => (1, 0),
+        };
+        let new_head = (self.snake.front().unwrap().0 + dx,
+                        self.snake.front().unwrap().1 + dy);
+        self.snake.push_front(new_head);
+        if self.snake.len() as u32 > self.length {
+            self.snake.pop_back();
+        }
+    }
+
+
 }
 
-fn to_screen_coords(game_x: i32, game_y: i32) -> (i32, i32) {
+fn to_screen_coords(tile: Tile) -> (i32, i32) {
+    let (game_x, game_y) = tile;
     let screen_x = BORDER_SIZE as i32 + game_x*(SQUARE_SIZE as i32);
     let screen_y = BORDER_SIZE as i32 + game_y*(SQUARE_SIZE as i32);
     (screen_x, screen_y)
@@ -63,22 +85,12 @@ fn draw(game_state: &GameState, canvas: &mut Canvas<Window>) {
 
     for tile in &game_state.snake {
         canvas.set_draw_color(Color::RGB(0, 0, 0));
-        let screen_coords = to_screen_coords(tile.0, tile.1);
+        let screen_coords = to_screen_coords(*tile);
         canvas.fill_rect(Rect::new(screen_coords.0, screen_coords.1,
                                    SQUARE_SIZE, SQUARE_SIZE)).unwrap();
     }
 
     canvas.present();
-}
-
-
-fn move_(game_state: &mut GameState, dx: i32, dy: i32) {
-    let new_head = (game_state.snake.front().unwrap().0 + dx,
-                    game_state.snake.front().unwrap().1 + dy);
-    game_state.snake.push_front(new_head);
-    if game_state.snake.len() as u32 > game_state.length {
-        game_state.snake.pop_back();
-    }
 }
 
 
@@ -103,10 +115,11 @@ fn main() {
             match event {
                 Event::Quit {..} => break 'main_loop,
                 Event::KeyDown { keycode: Some(Keycode::Escape), .. } => break 'main_loop,
-                Event::KeyDown { keycode: Some(Keycode::Up), .. } => move_(&mut game_state, 0, -1),
-                Event::KeyDown { keycode: Some(Keycode::Down), .. } => move_(&mut game_state, 0, 1),
-                Event::KeyDown { keycode: Some(Keycode::Left), .. } => move_(&mut game_state, -1, 0),
-                Event::KeyDown { keycode: Some(Keycode::Right), .. } => move_(&mut game_state, 1, 0),
+                Event::KeyDown { keycode: Some(Keycode::M), .. } => game_state.move_snake(),
+                Event::KeyDown { keycode: Some(Keycode::Up), .. } => game_state.set_direction(Direction::Up),
+                Event::KeyDown { keycode: Some(Keycode::Down), .. } => game_state.set_direction(Direction::Down),
+                Event::KeyDown { keycode: Some(Keycode::Left), .. } => game_state.set_direction(Direction::Left),
+                Event::KeyDown { keycode: Some(Keycode::Right), .. } => game_state.set_direction(Direction::Right),
                 _ => {},
             }
         }

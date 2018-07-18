@@ -14,6 +14,8 @@ Features:
 4) Increasing speed
 5) Score
 6) Levels
+  - Barriers
+  - Start tile
 7) Animations
 8) Power-ups
   - Pick food from range
