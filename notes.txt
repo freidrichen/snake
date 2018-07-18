@@ -1,0 +1,21 @@
+Game state:
+?) Snake tiles (Queue?)
+1) Direction
+1) Length
+2) Current food tile
+4) Speed
+5) Level:
+  - Barrier tiles (Set?)
+
+Features:
+1) Autowalk
+2) Food
+3) Collisions
+4) Increasing speed
+5) Score
+6) Levels
+7) Animations
+8) Power-ups
+  - Pick food from range
+  - Slow down
+  - Dont grow
