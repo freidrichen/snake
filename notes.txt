@@ -1,17 +1,13 @@
 Game state:
-?) Snake tiles (Queue?)
-1) Direction
-1) Length
-2) Current food tile
-4) Speed
-5) Level:
+- Level:
   - Barrier tiles (Set?)
 
 Features:
-1) Autowalk
-2) Food
-3) Collisions
+4) Wrap-around
+   - Collide with barriers
 4) Increasing speed
+
+4) Better controls
 5) Score
 6) Levels
   - Barriers
@@ -21,3 +17,4 @@ Features:
   - Pick food from range
   - Slow down
   - Dont grow
+9) Intro screen
