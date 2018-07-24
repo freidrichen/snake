@@ -1,20 +1,22 @@
-Game state:
-- Level:
-  - Barrier tiles (Set?)
-
 Features:
-4) Wrap-around
-   - Collide with barriers
-4) Increasing speed
+- Add new foods after eating
 
-4) Better controls
-5) Score
-6) Levels
+Possible features:
+- Increasing speed
+- Better controls
+- Score
+- Levels
   - Barriers
   - Start tile
-7) Animations
-8) Power-ups
+- Animations
+- Power-ups
   - Pick food from range
   - Slow down
   - Dont grow
-9) Intro screen
+- Intro screen
+
+Error handling (unwraps):
+- Is there a head tile in the snake?
+- SDL:
+  - Initiation
+  - Drawing

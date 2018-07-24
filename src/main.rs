@@ -11,13 +11,10 @@ use std::collections::VecDeque;
 
 
 const SQUARE_SIZE: u32 = 20;
-const BORDER_SIZE: u32 = 10;
 const PLAYGROUND_HEIGHT: u32 = 40;
 const PLAYGROUND_WIDTH: u32 = 50;
-const PLAYGROUND_WINDOW_HEIGHT: u32 = SQUARE_SIZE*PLAYGROUND_HEIGHT;
-const PLAYGROUND_WINDOW_WIDTH: u32 = SQUARE_SIZE*PLAYGROUND_WIDTH;
-const FULL_WINDOW_HEIGHT: u32 = SQUARE_SIZE*PLAYGROUND_HEIGHT + 2*BORDER_SIZE;
-const FULL_WINDOW_WIDTH: u32 = SQUARE_SIZE*PLAYGROUND_WIDTH + 2*BORDER_SIZE;
+const FULL_WINDOW_HEIGHT: u32 = SQUARE_SIZE*PLAYGROUND_HEIGHT; // + 2*BORDER_SIZE;
+const FULL_WINDOW_WIDTH: u32 = SQUARE_SIZE*PLAYGROUND_WIDTH; // + 2*BORDER_SIZE;
 
 
 enum Direction {
@@ -34,6 +31,7 @@ struct GameState {
     direction: Direction,
     food: Option<Tile>,
     dead: bool,
+    barriers: Vec<Tile>,
 }
 
 impl GameState {
@@ -44,6 +42,7 @@ impl GameState {
             direction: direction,
             food: Some((5, 5)),
             dead: false,
+            barriers: vec![(0, 0), (0, 1), (1, 0)],
         };
         state.snake.push_front(start_tile);
         state
@@ -62,29 +61,49 @@ impl GameState {
             Direction::Left => (-1, 0),
             Direction::Right => (1, 0),
         };
-        let new_head = (self.snake.front().unwrap().0 + dx,
-                        self.snake.front().unwrap().1 + dy);
+        let new_head = wraparound((
+            self.snake.front().unwrap().0 + dx,
+            self.snake.front().unwrap().1 + dy));
         if self.snake.contains(&new_head) {
+            self.dead = true;
+        } else if self.barriers.contains(&new_head) {
             self.dead = true;
         } else {
             self.snake.push_front(new_head);
             if self.food == Some(new_head) {
                 self.length += 3;
-                self.food = None;
+                self.food = Some((10, 10));
             }
             if self.snake.len() as u32 > self.length {
                 self.snake.pop_back();
             }
         }
     }
+}
 
-
+fn wraparound(tile: Tile) -> Tile {
+    let (x, y) = tile;
+    let new_x = if x < 0 {
+        PLAYGROUND_WIDTH as i32 - 1
+    } else if x >= PLAYGROUND_WIDTH as i32 {
+        0
+    } else {
+        x
+    };
+    let new_y = if y < 0 {
+        PLAYGROUND_HEIGHT as i32 - 1
+    } else if y >= PLAYGROUND_HEIGHT as i32 {
+        0
+    } else {
+        y
+    };
+    (new_x, new_y)
 }
 
 fn to_screen_coords(tile: Tile) -> (i32, i32) {
     let (game_x, game_y) = tile;
-    let screen_x = BORDER_SIZE as i32 + game_x*(SQUARE_SIZE as i32);
-    let screen_y = BORDER_SIZE as i32 + game_y*(SQUARE_SIZE as i32);
+    let screen_x = game_x*(SQUARE_SIZE as i32);
+    let screen_y = game_y*(SQUARE_SIZE as i32);
     (screen_x, screen_y)
 }
 
@@ -101,12 +120,12 @@ fn draw(game_state: &GameState, canvas: &mut Canvas<Window>) {
     let food_color = Color::RGB(0x88, 0x2F, 0x67);
     let barrier_color = Color::RGB(0x34, 0x34, 0x34);
 
-    canvas.set_draw_color(barrier_color);
+    canvas.set_draw_color(background_color);
     canvas.clear();
 
-    canvas.set_draw_color(background_color);
-    canvas.fill_rect(Rect::new(BORDER_SIZE as i32, BORDER_SIZE as i32,
-                               PLAYGROUND_WINDOW_WIDTH, PLAYGROUND_WINDOW_HEIGHT)).unwrap();
+    for tile in &game_state.barriers {
+        draw_tile(*tile, barrier_color, canvas)
+    }
 
     for tile in &game_state.snake {
         draw_tile(*tile, snake_color, canvas)
