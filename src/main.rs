@@ -12,12 +12,13 @@ use sdl2::video::Window;
 use rand::Rng;
 
 const SQUARE_SIZE: u32 = 20;
-const PLAYGROUND_HEIGHT: u32 = 40;
-const PLAYGROUND_WIDTH: u32 = 50;
-const FULL_WINDOW_HEIGHT: u32 = SQUARE_SIZE*PLAYGROUND_HEIGHT; // + 2*BORDER_SIZE;
-const FULL_WINDOW_WIDTH: u32 = SQUARE_SIZE*PLAYGROUND_WIDTH; // + 2*BORDER_SIZE;
+const MAX_PLAYGROUND_HEIGHT: u32 = 40;
+const MAX_PLAYGROUND_WIDTH: u32 = 50;
+const FULL_WINDOW_HEIGHT: u32 = SQUARE_SIZE*MAX_PLAYGROUND_HEIGHT;
+const FULL_WINDOW_WIDTH: u32 = SQUARE_SIZE*MAX_PLAYGROUND_WIDTH;
 
 
+#[derive(PartialEq)]
 enum Direction {
     Up,
     Down,
@@ -26,13 +27,27 @@ enum Direction {
 }
 
 type Tile = (i32, i32);
+
+struct Level {
+    // width: u32,
+    // height: u32,
+    // start_tile: Direction,
+    barriers: Vec<Tile>,
+}
+
+impl Level {
+    fn from_file(filename: ) -> Option<Level> {
+        File::open(filename)
+    }
+}
+
 struct GameState {
     snake: VecDeque<Tile>,
     length: u32,
     direction: Direction,
     food: Option<Tile>,
     dead: bool,
-    barriers: Vec<Tile>,
+    level: Level,
 }
 
 impl GameState {
@@ -43,13 +58,19 @@ impl GameState {
             direction: direction,
             food: Some((5, 5)),
             dead: false,
-            barriers: vec![(0, 0), (0, 1), (1, 0)],
+            level: Level { barriers: vec![(0, 0), (0, 1), (1, 0)] },
         };
         state.snake.push_front(start_tile);
         state
     }
 
     fn set_direction(self: &mut GameState, direction: Direction) {
+        if self.direction == Direction::Up && direction == Direction::Down
+            || self.direction == Direction::Down && direction == Direction::Up
+            || self.direction == Direction::Left && direction == Direction::Right
+            || self.direction == Direction::Right && direction == Direction::Left {
+                return
+            }
         self.direction = direction;
     }
 
@@ -67,13 +88,13 @@ impl GameState {
             self.snake.front().unwrap().1 + dy));
         if self.snake.contains(&new_head) {
             self.dead = true;
-        } else if self.barriers.contains(&new_head) {
+        } else if self.level.barriers.contains(&new_head) {
             self.dead = true;
         } else {
             self.snake.push_front(new_head);
             if self.food == Some(new_head) {
                 self.length += 5;
-                self.food = Some(new_food(&self.snake, &self.barriers));
+                self.food = Some(new_food(&self.snake, &self.level.barriers));
             }
             if self.snake.len() as u32 > self.length {
                 self.snake.pop_back();
@@ -85,8 +106,8 @@ impl GameState {
 fn new_food(snake: &VecDeque<Tile>, barriers: &Vec<Tile>) -> Tile {
     loop {
         let tile = wraparound(
-            (rand::thread_rng().gen_range(0, PLAYGROUND_WIDTH as i32),
-             rand::thread_rng().gen_range(0, PLAYGROUND_HEIGHT as i32)));
+            (rand::thread_rng().gen_range(0, MAX_PLAYGROUND_WIDTH as i32),
+             rand::thread_rng().gen_range(0, MAX_PLAYGROUND_HEIGHT as i32)));
         if !barriers.contains(&tile) && !snake.contains(&tile) {
             return tile
         }
@@ -96,15 +117,15 @@ fn new_food(snake: &VecDeque<Tile>, barriers: &Vec<Tile>) -> Tile {
 fn wraparound(tile: Tile) -> Tile {
     let (x, y) = tile;
     let new_x = if x < 0 {
-        PLAYGROUND_WIDTH as i32 - 1
-    } else if x >= PLAYGROUND_WIDTH as i32 {
+        MAX_PLAYGROUND_WIDTH as i32 - 1
+    } else if x >= MAX_PLAYGROUND_WIDTH as i32 {
         0
     } else {
         x
     };
     let new_y = if y < 0 {
-        PLAYGROUND_HEIGHT as i32 - 1
-    } else if y >= PLAYGROUND_HEIGHT as i32 {
+        MAX_PLAYGROUND_HEIGHT as i32 - 1
+    } else if y >= MAX_PLAYGROUND_HEIGHT as i32 {
         0
     } else {
         y
@@ -135,7 +156,7 @@ fn draw(game_state: &GameState, canvas: &mut Canvas<Window>) {
     canvas.set_draw_color(background_color);
     canvas.clear();
 
-    for tile in &game_state.barriers {
+    for tile in &game_state.level.barriers {
         draw_tile(*tile, barrier_color, canvas)
     }
 

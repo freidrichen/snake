@@ -1,9 +1,14 @@
 Features:
 - Better controls
+  - Disallow "backwards"
+  - React correctly to very fast key presses
 - Score
 - Levels
-  - Barriers
-  - Start tile
+  - Allow smaller levels? Window can always be max size. No need to center level until later.
+  - Constants are now MAX_PLAYGROUND_WIDTH etc
+  - Barriers (#)
+  - Empty space (. )
+  - Start tile incl. direction (<v>^)
 
 Possible features:
 - Increasing speed
