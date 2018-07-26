@@ -1,14 +1,15 @@
 extern crate sdl2;
+extern crate rand;
 
+use std::time::{Duration, Instant};
+use std::collections::VecDeque;
 use sdl2::event::Event;
 use sdl2::keyboard::Keycode;
 use sdl2::pixels::Color;
 use sdl2::rect::Rect;
 use sdl2::render::Canvas;
 use sdl2::video::Window;
-use std::time::{Duration, Instant};
-use std::collections::VecDeque;
-
+use rand::Rng;
 
 const SQUARE_SIZE: u32 = 20;
 const PLAYGROUND_HEIGHT: u32 = 40;
@@ -71,12 +72,23 @@ impl GameState {
         } else {
             self.snake.push_front(new_head);
             if self.food == Some(new_head) {
-                self.length += 3;
-                self.food = Some((10, 10));
+                self.length += 5;
+                self.food = Some(new_food(&self.snake, &self.barriers));
             }
             if self.snake.len() as u32 > self.length {
                 self.snake.pop_back();
             }
+        }
+    }
+}
+
+fn new_food(snake: &VecDeque<Tile>, barriers: &Vec<Tile>) -> Tile {
+    loop {
+        let tile = wraparound(
+            (rand::thread_rng().gen_range(0, PLAYGROUND_WIDTH as i32),
+             rand::thread_rng().gen_range(0, PLAYGROUND_HEIGHT as i32)));
+        if !barriers.contains(&tile) && !snake.contains(&tile) {
+            return tile
         }
     }
 }
@@ -140,7 +152,7 @@ fn draw(game_state: &GameState, canvas: &mut Canvas<Window>) {
 
 
 fn main() {
-    let snake_time_step = Duration::from_millis(150);
+    let snake_time_step = Duration::from_millis(120);
     let gfx_time_step = Duration::from_millis(50);
 
     let sdl_context = sdl2::init().unwrap();

@@ -1,13 +1,12 @@
 Features:
-- Add new foods after eating
-
-Possible features:
-- Increasing speed
 - Better controls
 - Score
 - Levels
   - Barriers
   - Start tile
+
+Possible features:
+- Increasing speed
 - Animations
 - Power-ups
   - Pick food from range
