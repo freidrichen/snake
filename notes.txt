@@ -1,22 +1,26 @@
 Features:
-- Better controls
-  - Disallow "backwards"
-  - React correctly to very fast key presses
-- Score
 - Levels
   - Allow smaller levels? Window can always be max size. No need to center level until later.
   - Constants are now MAX_PLAYGROUND_WIDTH etc
   - Barriers (#)
   - Empty space (. )
   - Start tile incl. direction (<v>^)
+- Better controls
+  - React correctly to very fast key presses
+- Score
 
 Possible features:
 - Increasing speed
 - Animations
+  - Death animation
 - Power-ups
   - Pick food from range
   - Slow down
   - Dont grow
+  - Invinsible (simply paus when colliding until another direction is chosen) (limited number of stops or limited time)
+  - Coil (shrink to size 1 and then grow again)
+  - Offspring (normal snake pauses, offspring goes out in its stead. If offspring collides with parent: merge instead of dying)
+  - See future food
 - Intro screen
 
 Error handling (unwraps):

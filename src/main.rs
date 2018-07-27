@@ -3,6 +3,9 @@ extern crate rand;
 
 use std::time::{Duration, Instant};
 use std::collections::VecDeque;
+use std::io::prelude::*;
+use std::fs::File;
+use std::error::Error;
 use sdl2::event::Event;
 use sdl2::keyboard::Keycode;
 use sdl2::pixels::Color;
@@ -29,15 +32,57 @@ enum Direction {
 type Tile = (i32, i32);
 
 struct Level {
-    // width: u32,
-    // height: u32,
-    // start_tile: Direction,
+    width: u32,
+    height: u32,
+    start_tile: Tile,
+    start_direction: Direction,
     barriers: Vec<Tile>,
 }
 
 impl Level {
-    fn from_file(filename: ) -> Option<Level> {
-        File::open(filename)
+    fn from_file(filename: &str) -> Level {
+        let mut f = File::open(filename).expect("Error opening level file.");
+        let mut contents = String::new();
+        f.read_to_string(&mut contents).expect("Error reading level file.");
+        let mut level = Level {
+            width: 0,
+            height: 0,
+            start_tile: (0, 0),
+            start_direction: Direction::Right,
+            barriers: vec![]
+        };
+        for (y, line) in contents.lines().enumerate() {
+            // TODO: Sanity check length of each line.
+            level.width = line.len() as u32;
+            level.height = y as u32;
+            for (x, c) in line.chars().enumerate() {
+                let tile = (x as i32, y as i32);
+                match c {
+                    '#' => level.barriers.push(tile),
+                    '.' | ' ' => continue,
+                    '<' => {
+                        level.start_tile = tile;
+                        level.start_direction = Direction::Left;
+                    },
+                    '>' => {
+                        level.start_tile = tile;
+                        level.start_direction = Direction::Right;
+                    },
+                    '^' => {
+                        level.start_tile = tile;
+                        level.start_direction = Direction::Up;
+                    },
+                    'v' => {
+                        level.start_tile = tile;
+                        level.start_direction = Direction::Down;
+                    },
+                    _ => {
+                        panic!("Invalid characters in level file: {:?}.", c)
+                    }
+                }
+            }
+        }
+        level
     }
 }
 
@@ -58,7 +103,7 @@ impl GameState {
             direction: direction,
             food: Some((5, 5)),
             dead: false,
-            level: Level { barriers: vec![(0, 0), (0, 1), (1, 0)] },
+            level: Level::from_file("resources/levels/1"),
         };
         state.snake.push_front(start_tile);
         state
@@ -105,9 +150,8 @@ impl GameState {
 
 fn new_food(snake: &VecDeque<Tile>, barriers: &Vec<Tile>) -> Tile {
     loop {
-        let tile = wraparound(
-            (rand::thread_rng().gen_range(0, MAX_PLAYGROUND_WIDTH as i32),
-             rand::thread_rng().gen_range(0, MAX_PLAYGROUND_HEIGHT as i32)));
+        let tile = (rand::thread_rng().gen_range(0, MAX_PLAYGROUND_WIDTH as i32),
+                    rand::thread_rng().gen_range(0, MAX_PLAYGROUND_HEIGHT as i32));
         if !barriers.contains(&tile) && !snake.contains(&tile) {
             return tile
         }
