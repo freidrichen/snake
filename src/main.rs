@@ -5,7 +5,6 @@ use std::time::{Duration, Instant};
 use std::collections::VecDeque;
 use std::io::prelude::*;
 use std::fs::File;
-use std::error::Error;
 use sdl2::event::Event;
 use sdl2::keyboard::Keycode;
 use sdl2::pixels::Color;
@@ -52,7 +51,9 @@ impl Level {
             barriers: vec![]
         };
         for (y, line) in contents.lines().enumerate() {
-            // TODO: Sanity check length of each line.
+            if level.width > 0 && line.len() as u32 != level.width {
+                panic!("Multiple widths in level file.")
+            }
             level.width = line.len() as u32;
             level.height = y as u32;
             for (x, c) in line.chars().enumerate() {
@@ -84,9 +85,29 @@ impl Level {
         }
         level
     }
+
+    fn wraparound(self: &Level, tile: Tile) -> Tile {
+        let (x, y) = tile;
+        let new_x = if x < 0 {
+            self.width as i32 - 1
+        } else if x >= self.width as i32 {
+            0
+        } else {
+            x
+        };
+        let new_y = if y < 0 {
+            self.height as i32 - 1
+        } else if y >= self.height as i32 {
+            0
+        } else {
+            y
+        };
+        (new_x, new_y)
+    }
 }
 
 struct GameState {
+    score: u32,
     snake: VecDeque<Tile>,
     length: u32,
     direction: Direction,
@@ -98,6 +119,7 @@ struct GameState {
 impl GameState {
     fn new(start_tile: Tile, direction: Direction) -> GameState {
         let mut state = GameState {
+            score: 0,
             snake: VecDeque::new(),
             length: 10,
             direction: direction,
@@ -128,7 +150,7 @@ impl GameState {
             Direction::Left => (-1, 0),
             Direction::Right => (1, 0),
         };
-        let new_head = wraparound((
+        let new_head = self.level.wraparound((
             self.snake.front().unwrap().0 + dx,
             self.snake.front().unwrap().1 + dy));
         if self.snake.contains(&new_head) {
@@ -138,8 +160,10 @@ impl GameState {
         } else {
             self.snake.push_front(new_head);
             if self.food == Some(new_head) {
+                self.score += 1;
+                println!("Score: {}", self.score);
                 self.length += 5;
-                self.food = Some(new_food(&self.snake, &self.level.barriers));
+                self.food = Some(new_food(&self.snake, &self.level));
             }
             if self.snake.len() as u32 > self.length {
                 self.snake.pop_back();
@@ -148,33 +172,14 @@ impl GameState {
     }
 }
 
-fn new_food(snake: &VecDeque<Tile>, barriers: &Vec<Tile>) -> Tile {
+fn new_food(snake: &VecDeque<Tile>, level: &Level) -> Tile {
     loop {
-        let tile = (rand::thread_rng().gen_range(0, MAX_PLAYGROUND_WIDTH as i32),
-                    rand::thread_rng().gen_range(0, MAX_PLAYGROUND_HEIGHT as i32));
-        if !barriers.contains(&tile) && !snake.contains(&tile) {
+        let tile = (rand::thread_rng().gen_range(0, level.width as i32),
+                    rand::thread_rng().gen_range(0, level.height as i32));
+        if !level.barriers.contains(&tile) && !snake.contains(&tile) {
             return tile
         }
     }
-}
-
-fn wraparound(tile: Tile) -> Tile {
-    let (x, y) = tile;
-    let new_x = if x < 0 {
-        MAX_PLAYGROUND_WIDTH as i32 - 1
-    } else if x >= MAX_PLAYGROUND_WIDTH as i32 {
-        0
-    } else {
-        x
-    };
-    let new_y = if y < 0 {
-        MAX_PLAYGROUND_HEIGHT as i32 - 1
-    } else if y >= MAX_PLAYGROUND_HEIGHT as i32 {
-        0
-    } else {
-        y
-    };
-    (new_x, new_y)
 }
 
 fn to_screen_coords(tile: Tile) -> (i32, i32) {
@@ -214,7 +219,6 @@ fn draw(game_state: &GameState, canvas: &mut Canvas<Window>) {
 
     canvas.present();
 }
-
 
 fn main() {
     let snake_time_step = Duration::from_millis(120);

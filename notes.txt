@@ -1,16 +1,13 @@
 Features:
-- Levels
-  - Allow smaller levels? Window can always be max size. No need to center level until later.
-  - Constants are now MAX_PLAYGROUND_WIDTH etc
-  - Barriers (#)
-  - Empty space (. )
-  - Start tile incl. direction (<v>^)
+- Score
+  - Render with bitmap font?
 - Better controls
   - React correctly to very fast key presses
-- Score
+  - Be a little extra lenient before collisions
 
 Possible features:
 - Increasing speed
+- Gate to next level
 - Animations
   - Death animation
 - Power-ups
@@ -23,8 +20,12 @@ Possible features:
   - See future food
 - Intro screen
 
-Error handling (unwraps):
-- Is there a head tile in the snake?
-- SDL:
-  - Initiation
-  - Drawing
+Idiomatic code:
+- Refactor into main.rs and lib.rs
+- Error handling
+  - Is there a head tile in the snake?
+  - IO and level syntax when loading levels
+  - SDL:
+    - Initiation
+    - Drawing
+- Unit tests
