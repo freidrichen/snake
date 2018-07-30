@@ -198,13 +198,19 @@ fn draw_tile(tile: Tile, color: Color, canvas: &mut Canvas<Window>) {
 }
 
 fn draw(game_state: &GameState, canvas: &mut Canvas<Window>) {
+    let outside_color = Color::RGB(0xCA, 0xC5, 0xAE);
     let background_color = Color::RGB(0x4A, 0x99, 0x4C);
     let snake_color = Color::RGB(0xEF, 0xCD, 0x37);
     let food_color = Color::RGB(0x88, 0x2F, 0x67);
     let barrier_color = Color::RGB(0x34, 0x34, 0x34);
 
-    canvas.set_draw_color(background_color);
+    canvas.set_draw_color(outside_color);
     canvas.clear();
+
+    canvas.set_draw_color(background_color);
+    let height = SQUARE_SIZE*game_state.level.height;
+    let width = SQUARE_SIZE*game_state.level.width;
+    canvas.fill_rect(Rect::new(0, 1, width, height)).unwrap();
 
     for tile in &game_state.level.barriers {
         draw_tile(*tile, barrier_color, canvas)
