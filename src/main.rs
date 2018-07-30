@@ -83,6 +83,7 @@ impl Level {
                 }
             }
         }
+        level.height += 1;
         level
     }
 
