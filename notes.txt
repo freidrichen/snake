@@ -2,16 +2,21 @@ Bugs:
 
 Features:
 - Score
-  - Render with bitmap font?
+  - Render with bitmap font? (Perhaps create a struct with textures to pass into draw functions.) 
 - Better controls
-  - React correctly to very fast key presses
-  - Be a little extra lenient before collisions
+  - Be a little extra lenient when player is only _slightly_ early or _slightly_ late and would have died.
+- Death screen and restart key
 
 Possible features:
 - Increasing speed
 - Gate to next level
+- Sprites
+  - Snake
+  - Walls
+- Sound
 - Animations
   - Death animation
+- Intro screen
 - Power-ups
   - Pick food from range
   - Slow down
@@ -20,9 +25,10 @@ Possible features:
   - Coil (shrink to size 1 and then grow again)
   - Offspring (normal snake pauses, offspring goes out in its stead. If offspring collides with parent: merge instead of dying)
   - See future food
-- Intro screen
 
 Idiomatic code:
+- Pass a duration to GameState.update which corresponds to time since last step? (Makes it very easy to implement increasing speed)
+- Split snake out of game state?
 - Refactor into main.rs and lib.rs
 - Error handling
   - Is there a head tile in the snake?

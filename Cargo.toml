@@ -1,5 +1,5 @@
 [package]
-name = "sdl2-test"
+name = "sdl2_test_snake"
 version = "0.1.0"
 authors = ["Magnus Sandén <thefreid@gmail.com>"]
 
