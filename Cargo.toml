@@ -1,8 +1,8 @@
 [package]
-name = "sdl2_test_snake"
+name = "ggez_test_snake"
 version = "0.1.0"
 authors = ["Magnus Sandén <thefreid@gmail.com>"]
 
 [dependencies]
-sdl2 = "0.31"
+ggez = "0.4"
 rand = "0.5.4"

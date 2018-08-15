@@ -1,14 +1,20 @@
 Bugs:
 
 Features:
-- Score
-  - Render with bitmap font? (Perhaps create a struct with textures to pass into draw functions.) 
-- Better controls
-  - Be a little extra lenient when player is only _slightly_ early or _slightly_ late and would have died.
-- Death screen and restart key
+- Switch to ggez!
+  - Move stuff into ggez boilerplate
+  - Double check if things are in the correct modules/files
 
 Possible features:
+- Fearlessly multithread graphics <-> game logic
+- Death screen and restart key
+- Score
+  - Render as text in ggez
+- Better controls
+  - Be a little extra lenient when player is only _slightly_ early or _slightly_
+    late and would have died. Much easier when using ggez.
 - Increasing speed
+  - Much easier when using ggez.
 - Gate to next level
 - Sprites
   - Snake
@@ -27,13 +33,11 @@ Possible features:
   - See future food
 
 Idiomatic code:
-- Pass a duration to GameState.update which corresponds to time since last step? (Makes it very easy to implement increasing speed)
-- Split snake out of game state?
-- Refactor into main.rs and lib.rs
+- Pass a duration to GameState.update which corresponds to time since last step? (Makes it very easy to implement increasing speed). ggez fixes this.
 - Error handling
   - Is there a head tile in the snake?
   - IO and level syntax when loading levels
   - SDL:
     - Initiation
     - Drawing
-- Unit tests
+- Add unit tests e.g. to level loading

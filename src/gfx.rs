@@ -1,33 +1,25 @@
-extern crate sdl2;
-
-use sdl2::pixels::Color;
-use sdl2::rect::Rect;
-use sdl2::render::Canvas;
-use sdl2::video::Window;
-use sdl2_test_snake::MAX_PLAYGROUND_SIZE;
-use sdl2_test_snake::{Tile, GameState};
-
+const MAX_PLAYGROUND_SIZE: (u32, u32) = (50, 40);
 const SQUARE_SIZE: u32 = 20;
 pub const FULL_WINDOW_SIZE: (u32, u32) = (
     SQUARE_SIZE*MAX_PLAYGROUND_SIZE.0,
     SQUARE_SIZE*MAX_PLAYGROUND_SIZE.1);
 
 
-fn to_screen_coords(tile: Tile) -> (i32, i32) {
-    let (game_x, game_y) = tile;
-    let screen_x = game_x*(SQUARE_SIZE as i32);
-    let screen_y = game_y*(SQUARE_SIZE as i32);
-    (screen_x, screen_y)
-}
+// fn to_screen_coords(tile: Tile) -> (i32, i32) {
+//     let (game_x, game_y) = tile;
+//     let screen_x = game_x*(SQUARE_SIZE as i32);
+//     let screen_y = game_y*(SQUARE_SIZE as i32);
+//     (screen_x, screen_y)
+// }
 
-fn draw_tile(tile: Tile, color: Color, canvas: &mut Canvas<Window>) {
-    canvas.set_draw_color(color);
-    let screen_coords = to_screen_coords(tile);
-    canvas.fill_rect(Rect::new(screen_coords.0, screen_coords.1,
-                               SQUARE_SIZE, SQUARE_SIZE)).unwrap();
-}
+// fn draw_tile(tile: Tile, color: Color, canvas: &mut Canvas<Window>) {
+//     canvas.set_draw_color(color);
+//     let screen_coords = to_screen_coords(tile);
+//     canvas.fill_rect(Rect::new(screen_coords.0, screen_coords.1,
+//                                SQUARE_SIZE, SQUARE_SIZE)).unwrap();
+// }
 
-pub fn draw(game_state: &GameState, canvas: &mut Canvas<Window>) {
+pub fn draw(game_state: &GameState, canvas: &mut Context) -> Result<(), GameError> {
     let outside_color = Color::RGB(0xCA, 0xC5, 0xAE);
     let background_color = Color::RGB(0x4A, 0x99, 0x4C);
     let snake_color = Color::RGB(0xEF, 0xCD, 0x37);
