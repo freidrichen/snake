@@ -6,7 +6,7 @@ use ggez::event::{EventHandler};
 use ggez::input::keyboard::{KeyCode, KeyMods};
 use ggez::timer;
 use ggez::graphics;
-use ggez::graphics::{DrawMode, Rect, Color};
+use ggez::graphics::{Rect, Color};
 use std::collections::VecDeque;
 use std::io::prelude::*;
 use std::fs::File;
@@ -237,13 +237,20 @@ fn to_screen_coords(tile: Tile) -> (f32, f32) {
     (screen_x, screen_y)
 }
 
-// fn draw_tile(ctx: &mut Context, tile: Tile, color: Color) -> GameResult<()> {
-//     graphics::set_color(ctx, color);
-//     let screen_coords = to_screen_coords(tile);
-//     graphics::rectangle(ctx, DrawMode::Fill, Rect::new(screen_coords.0, screen_coords.1,
-//                                                        SQUARE_SIZE as f32, SQUARE_SIZE as f32))?;
-//     Ok(())
-// }
+fn draw_tile(ctx: &mut Context, tile: Tile, color: Color) -> GameResult<()> {
+    let screen_coords = to_screen_coords(tile);
+
+    let size_rect = Rect::new(screen_coords.0, screen_coords.1,
+                              SQUARE_SIZE as f32, SQUARE_SIZE as f32);
+    let mesh_rect = graphics::Mesh::new_rectangle(
+        ctx,
+        ggez::graphics::DrawMode::fill(),
+        size_rect,
+        color)?;
+    graphics::draw(ctx, &mesh_rect, (ggez::mint::Point2 { x: 0.0, y: 0.0 },))?;
+
+    Ok(())
+}
 
 pub fn draw(game_state: &GameState, ctx: &mut Context) -> GameResult<()> {
     let outside_color = Color::from_rgb(0xCA, 0xC5, 0xAE);
@@ -252,36 +259,29 @@ pub fn draw(game_state: &GameState, ctx: &mut Context) -> GameResult<()> {
     let food_color = Color::from_rgb(0x88, 0x2F, 0x67);
     let barrier_color = Color::from_rgb(0x34, 0x34, 0x34);
 
-    // let bg_rect = graphics::Mesh::new_rectangle(
-    //     &mut ctx,
-    //     ggez::graphics::DrawMode::fill(),
-    //     Rect::new(0.0, 1.0, FULL_WINDOW_SIZE.0 as f32, FULL_WINDOW_SIZE.1 as f32),
-    //     outside_color)?;
-    // graphics::set_color(ctx, outside_color);
     graphics::clear(ctx, outside_color);
 
-    // graphics::set_color(ctx, background_color);
-    // let height = (SQUARE_SIZE*game_state.level.height) as f32;
-    // let width = (SQUARE_SIZE*game_state.level.width) as f32;
-    // graphics::rectangle(ctx, DrawMode::Fill, Rect::new(0.0, 1.0, width, height))?;
-    // let bg_rect = graphics::Mesh::new_rectangle(
-    //     &mut ctx,
-    //     ggez::graphics::DrawMode::fill(),
-    //     Rect::new(0.0, 1.0, FULL_WINDOW_SIZE.0 as f32, FULL_WINDOW_SIZE.1 as f32),
-    //     background_color)?;
+    let height = (SQUARE_SIZE*game_state.level.height) as f32;
+    let width = (SQUARE_SIZE*game_state.level.width) as f32;
+    let bg_rect = graphics::Mesh::new_rectangle(
+        ctx,
+        ggez::graphics::DrawMode::fill(),
+        Rect::new(0.0, 1.0, width, height),
+        background_color)?;
+    graphics::draw(ctx, &bg_rect, (ggez::mint::Point2 { x: 0.0, y: 0.0 },))?;
 
-    // for tile in &game_state.level.barriers {
-    //     draw_tile(ctx, *tile, barrier_color)?
-    // }
+    for tile in &game_state.level.barriers {
+        draw_tile(ctx, *tile, barrier_color)?
+    }
 
-    // for tile in &game_state.snake {
-    //     draw_tile(ctx, *tile, snake_color)?
-    // }
+    for tile in &game_state.snake {
+        draw_tile(ctx, *tile, snake_color)?
+    }
 
-    // if let Some(tile) = game_state.food {
-    //     draw_tile(ctx, tile, food_color)?
-    // }
+    if let Some(tile) = game_state.food {
+        draw_tile(ctx, tile, food_color)?
+    }
 
-    graphics::present(ctx);
+    graphics::present(ctx)?;
     Ok(())
 }

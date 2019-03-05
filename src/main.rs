@@ -2,15 +2,11 @@ extern crate ggez;
 extern crate snake;
 
 use ggez::event;
-use ggez::{GameResult, Context};
-use ggez::graphics;
-use ggez::graphics::{DrawMode};
+use ggez::GameResult;
 // use std::time::{Duration, Instant};
 
 // use snake::{Direction, GameState};
 use snake::GameState;
-
-// mod gfx;
 
 const MAX_PLAYGROUND_SIZE: (u32, u32) = (50, 40);
 const SQUARE_SIZE: u32 = 20;
