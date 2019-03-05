@@ -19,35 +19,6 @@ pub const FULL_WINDOW_SIZE: (u32, u32) = (
     SQUARE_SIZE*MAX_PLAYGROUND_SIZE.1);
 
 
-struct MainState {
-    pos_x: f32,
-}
-
-impl MainState {
-    fn new(_ctx: &mut Context) -> GameResult<MainState> {
-        let s = MainState { pos_x: 0.0 };
-        Ok(s)
-    }
-}
-
-impl event::EventHandler for MainState {
-    fn update(&mut self, _ctx: &mut Context) -> GameResult {
-        self.pos_x = self.pos_x % 800.0 + 1.0;
-        Ok(())
-    }
-
-    fn draw(&mut self, ctx: &mut Context) -> GameResult {
-        graphics::clear(ctx, [0.0, 1.0, 0.0, 1.0].into());
-        // graphics::circle(ctx,
-        //                  DrawMode::Fill,
-        //                  Point2::new(self.pos_x, 380.0),
-        //                  100.0,
-        //                  2.0)?;
-        graphics::present(ctx);
-        Ok(())
-    }
-}
-
 pub fn main() -> GameResult {
     let (ctx, event_loop) = &mut ggez::ContextBuilder::new("snake", "Magnus Sandén")
         .window_setup(ggez::conf::WindowSetup::default().title("Rusty McSnake"))
