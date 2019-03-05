@@ -1,16 +1,22 @@
 extern crate ggez;
-extern crate ggez_test_snake;
+extern crate snake;
 
 use ggez::event;
-use ggez::conf;
 use ggez::{GameResult, Context};
 use ggez::graphics;
-use ggez::graphics::{DrawMode, Point2};
+use ggez::graphics::{DrawMode};
 // use std::time::{Duration, Instant};
 
-use ggez_test_snake::{Direction, GameState};
+// use snake::{Direction, GameState};
+use snake::GameState;
 
 // mod gfx;
+
+const MAX_PLAYGROUND_SIZE: (u32, u32) = (50, 40);
+const SQUARE_SIZE: u32 = 20;
+pub const FULL_WINDOW_SIZE: (u32, u32) = (
+    SQUARE_SIZE*MAX_PLAYGROUND_SIZE.0,
+    SQUARE_SIZE*MAX_PLAYGROUND_SIZE.1);
 
 
 struct MainState {
@@ -25,31 +31,32 @@ impl MainState {
 }
 
 impl event::EventHandler for MainState {
-    fn update(&mut self, _ctx: &mut Context) -> GameResult<()> {
+    fn update(&mut self, _ctx: &mut Context) -> GameResult {
         self.pos_x = self.pos_x % 800.0 + 1.0;
         Ok(())
     }
 
-    fn draw(&mut self, ctx: &mut Context) -> GameResult<()> {
-        graphics::clear(ctx);
-        graphics::circle(ctx,
-                         DrawMode::Fill,
-                         Point2::new(self.pos_x, 380.0),
-                         100.0,
-                         2.0)?;
+    fn draw(&mut self, ctx: &mut Context) -> GameResult {
+        graphics::clear(ctx, [0.0, 1.0, 0.0, 1.0].into());
+        // graphics::circle(ctx,
+        //                  DrawMode::Fill,
+        //                  Point2::new(self.pos_x, 380.0),
+        //                  100.0,
+        //                  2.0)?;
         graphics::present(ctx);
         Ok(())
     }
 }
 
-pub fn main() {
-    let c = conf::Conf::new();
-    // c.window_title = "Rust snake test".to_string();
-    c.window_width = gfx::FULL_WINDOW_SIZE.0;
-    c.window_height = gfx::FULL_WINDOW_SIZE.1;
-    let ctx = &mut Context::load_from_conf("super_simple", "ggez", c).unwrap();
+pub fn main() -> GameResult {
+    let (ctx, event_loop) = &mut ggez::ContextBuilder::new("snake", "Magnus Sandén")
+        .window_setup(ggez::conf::WindowSetup::default().title("Rusty McSnake"))
+        .window_mode(ggez::conf::WindowMode::default().dimensions(FULL_WINDOW_SIZE.0 as f32, FULL_WINDOW_SIZE.1 as f32))
+        .build()?;
+
     let state = &mut GameState::new().unwrap();
-    event::run(ctx, state).unwrap();
+    event::run(ctx, event_loop, state).unwrap();
+    Ok(())
 }
 
 // fn main() {
@@ -58,7 +65,7 @@ pub fn main() {
 
 //     let sdl_context = sdl2::init().unwrap();
 //     let video = sdl_context.video().unwrap();
-//     let window = video.window("SDL Test", gfx::FULL_WINDOW_SIZE.0, gfx::FULL_WINDOW_SIZE.1)
+//     let window = video.window("SDL Test", FULL_WINDOW_SIZE.0, FULL_WINDOW_SIZE.1)
 //         .position_centered()
 //         .build()
 //         .unwrap();
@@ -69,7 +76,7 @@ pub fn main() {
 
 //     let mut game_state = GameState::new();
 //     let mut last_move_time = Instant::now();
-//     gfx::draw(&game_state, &mut canvas);
+//     draw(&game_state, &mut canvas);
 //     let mut last_draw_time = Instant::now();
 
 //     'main_loop: loop {
@@ -92,7 +99,7 @@ pub fn main() {
 //         }
 
 //         if now.duration_since(last_draw_time) > gfx_time_step {
-//             gfx::draw(&game_state, &mut canvas);
+//             draw(&game_state, &mut canvas);
 //             last_draw_time = now;
 //         }
 //         ::std::thread::sleep(Duration::from_millis(10));

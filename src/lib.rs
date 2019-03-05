@@ -2,7 +2,8 @@ extern crate rand;
 extern crate ggez;
 
 use ggez::{Context, GameResult};
-use ggez::event::{EventHandler, Keycode, Mod};
+use ggez::event::{EventHandler};
+use ggez::input::keyboard::{KeyCode, KeyMods};
 use ggez::timer;
 use ggez::graphics;
 use ggez::graphics::{DrawMode, Rect, Color};
@@ -199,15 +200,15 @@ impl EventHandler for GameState {
         Ok(())
     }
 
-    fn key_down_event(&mut self, _ctx: &mut Context, keycode: Keycode,
-                      _keymod: Mod, _repeat: bool) {
+    fn key_down_event(&mut self, _ctx: &mut Context, keycode: KeyCode,
+                      _keymod: KeyMods, _repeat: bool) {
         match keycode {
             // Event::Quit {..} => break 'main_loop,
-            // Event::KeyDown { keycode: Some(Keycode::Escape), .. } => break 'main_loop,
-            Keycode::Up => self.set_direction(Direction::Up),
-            Keycode::Down => self.set_direction(Direction::Down),
-            Keycode::Left => self.set_direction(Direction::Left),
-            Keycode::Right => self.set_direction(Direction::Right),
+            // Event::KeyDown { keycode: Some(KeyCode::Escape), .. } => break 'main_loop,
+            KeyCode::Up => self.set_direction(Direction::Up),
+            KeyCode::Down => self.set_direction(Direction::Down),
+            KeyCode::Left => self.set_direction(Direction::Left),
+            KeyCode::Right => self.set_direction(Direction::Right),
             _ => {},
         }
     }
@@ -236,13 +237,13 @@ fn to_screen_coords(tile: Tile) -> (f32, f32) {
     (screen_x, screen_y)
 }
 
-fn draw_tile(ctx: &mut Context, tile: Tile, color: Color) -> GameResult<()> {
-    graphics::set_color(ctx, color);
-    let screen_coords = to_screen_coords(tile);
-    graphics::rectangle(ctx, DrawMode::Fill, Rect::new(screen_coords.0, screen_coords.1,
-                                                       SQUARE_SIZE as f32, SQUARE_SIZE as f32))?;
-    Ok(())
-}
+// fn draw_tile(ctx: &mut Context, tile: Tile, color: Color) -> GameResult<()> {
+//     graphics::set_color(ctx, color);
+//     let screen_coords = to_screen_coords(tile);
+//     graphics::rectangle(ctx, DrawMode::Fill, Rect::new(screen_coords.0, screen_coords.1,
+//                                                        SQUARE_SIZE as f32, SQUARE_SIZE as f32))?;
+//     Ok(())
+// }
 
 pub fn draw(game_state: &GameState, ctx: &mut Context) -> GameResult<()> {
     let outside_color = Color::from_rgb(0xCA, 0xC5, 0xAE);
@@ -251,25 +252,35 @@ pub fn draw(game_state: &GameState, ctx: &mut Context) -> GameResult<()> {
     let food_color = Color::from_rgb(0x88, 0x2F, 0x67);
     let barrier_color = Color::from_rgb(0x34, 0x34, 0x34);
 
-    graphics::set_color(ctx, outside_color);
-    graphics::clear(ctx);
+    // let bg_rect = graphics::Mesh::new_rectangle(
+    //     &mut ctx,
+    //     ggez::graphics::DrawMode::fill(),
+    //     Rect::new(0.0, 1.0, FULL_WINDOW_SIZE.0 as f32, FULL_WINDOW_SIZE.1 as f32),
+    //     outside_color)?;
+    // graphics::set_color(ctx, outside_color);
+    graphics::clear(ctx, outside_color);
 
-    graphics::set_color(ctx, background_color);
-    let height = (SQUARE_SIZE*game_state.level.height) as f32;
-    let width = (SQUARE_SIZE*game_state.level.width) as f32;
-    graphics::rectangle(ctx, DrawMode::Fill, Rect::new(0.0, 1.0, width, height))?;
+    // graphics::set_color(ctx, background_color);
+    // let height = (SQUARE_SIZE*game_state.level.height) as f32;
+    // let width = (SQUARE_SIZE*game_state.level.width) as f32;
+    // graphics::rectangle(ctx, DrawMode::Fill, Rect::new(0.0, 1.0, width, height))?;
+    // let bg_rect = graphics::Mesh::new_rectangle(
+    //     &mut ctx,
+    //     ggez::graphics::DrawMode::fill(),
+    //     Rect::new(0.0, 1.0, FULL_WINDOW_SIZE.0 as f32, FULL_WINDOW_SIZE.1 as f32),
+    //     background_color)?;
 
-    for tile in &game_state.level.barriers {
-        draw_tile(ctx, *tile, barrier_color)?
-    }
+    // for tile in &game_state.level.barriers {
+    //     draw_tile(ctx, *tile, barrier_color)?
+    // }
 
-    for tile in &game_state.snake {
-        draw_tile(ctx, *tile, snake_color)?
-    }
+    // for tile in &game_state.snake {
+    //     draw_tile(ctx, *tile, snake_color)?
+    // }
 
-    if let Some(tile) = game_state.food {
-        draw_tile(ctx, tile, food_color)?
-    }
+    // if let Some(tile) = game_state.food {
+    //     draw_tile(ctx, tile, food_color)?
+    // }
 
     graphics::present(ctx);
     Ok(())
