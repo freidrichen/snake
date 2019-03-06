@@ -4,12 +4,11 @@ extern crate ggez;
 use ggez::{Context, GameResult};
 use ggez::event::{EventHandler};
 use ggez::input::keyboard::{KeyCode, KeyMods};
-use ggez::timer;
-use ggez::graphics;
-use ggez::graphics::{Rect, Color};
+use ggez::graphics::{self, Rect, Color};
 use std::collections::VecDeque;
 use std::io::prelude::*;
 use std::fs::File;
+use std::time::{Instant, Duration};
 use rand::Rng;
 
 
@@ -127,6 +126,8 @@ pub struct GameState {
     pub food: Option<Tile>,
     gameover: bool,
     pub level: Level,
+    step_delay: Duration,
+    last_step: Instant,
 }
 
 impl GameState {
@@ -144,6 +145,8 @@ impl GameState {
             food: Some(food),
             gameover: false,
             level: level,
+            step_delay: Duration::from_millis(162),
+            last_step: Instant::now(),
         })
     }
 
@@ -154,14 +157,13 @@ impl GameState {
 
 impl EventHandler for GameState {
     fn draw(self: &mut GameState, context: &mut Context) -> GameResult<()> {
-        Ok(draw(self, context)?)
+        draw(self, context)?;
+        ggez::timer::yield_now();
+        Ok(())
     }
 
-    fn update(self: &mut GameState, ctx: &mut Context) -> GameResult<()> {
-        const DESIRED_FPS: u32 = 60;
-
-        while timer::check_update_time(ctx, DESIRED_FPS) {
-            let seconds = 1.0 / (DESIRED_FPS as f32);
+    fn update(self: &mut GameState, _ctx: &mut Context) -> GameResult<()> {
+        if Instant::now() - self.last_step >= self.step_delay {
 
             if self.gameover { return Ok(()) }
 
@@ -196,6 +198,9 @@ impl EventHandler for GameState {
                     self.snake.pop_back();
                 }
             }
+            
+            // If we updated, we set our last_update to be now
+            self.last_step = Instant::now();
         }
         Ok(())
     }
@@ -244,7 +249,7 @@ fn draw_tile(ctx: &mut Context, tile: Tile, color: Color) -> GameResult<()> {
                               SQUARE_SIZE as f32, SQUARE_SIZE as f32);
     let mesh_rect = graphics::Mesh::new_rectangle(
         ctx,
-        ggez::graphics::DrawMode::fill(),
+        graphics::DrawMode::fill(),
         size_rect,
         color)?;
     graphics::draw(ctx, &mesh_rect, (ggez::mint::Point2 { x: 0.0, y: 0.0 },))?;
@@ -265,7 +270,7 @@ pub fn draw(game_state: &GameState, ctx: &mut Context) -> GameResult<()> {
     let width = (SQUARE_SIZE*game_state.level.width) as f32;
     let bg_rect = graphics::Mesh::new_rectangle(
         ctx,
-        ggez::graphics::DrawMode::fill(),
+        graphics::DrawMode::fill(),
         Rect::new(0.0, 1.0, width, height),
         background_color)?;
     graphics::draw(ctx, &bg_rect, (ggez::mint::Point2 { x: 0.0, y: 0.0 },))?;
