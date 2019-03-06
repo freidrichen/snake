@@ -1,3 +1,4 @@
+#![feature(duration_float)]
 extern crate rand;
 extern crate ggez;
 
@@ -150,8 +151,45 @@ impl GameState {
         })
     }
 
-    pub fn set_direction(self: &mut GameState, direction: Direction) {
+    pub fn set_direction(&mut self, direction: Direction) {
         self.future_directions.push_back(direction);
+    }
+
+    fn update_single_step(&mut self) {
+        if self.gameover { return }
+
+        if let Some(direction) = self.future_directions.pop_front() {
+            if !self.direction.is_opposite(direction) {
+                self.direction = direction;
+            }
+        }
+        let (dx, dy) = match self.direction {
+            Direction::Up => (0, -1),
+            Direction::Down => (0, 1),
+            Direction::Left => (-1, 0),
+            Direction::Right => (1, 0),
+        };
+
+        let new_head = self.level.wraparound((
+            self.snake.front().unwrap().0 + dx,
+            self.snake.front().unwrap().1 + dy));
+        if self.snake.contains(&new_head) {
+            self.gameover = true;
+        } else if self.level.barriers.contains(&new_head) {
+            self.gameover = true;
+        } else {
+            self.snake.push_front(new_head);
+            if self.food == Some(new_head) {
+                self.score += 1;
+                self.step_delay = self.step_delay.mul_f64(0.95);
+                println!("Score: {}; Speed: {:?}", self.score, self.step_delay);
+                self.length += 5;
+                self.food = Some(new_food(&self.snake, &self.level));
+            }
+            if self.snake.len() as u32 > self.length {
+                self.snake.pop_back();
+            }
+        }
     }
 }
 
@@ -163,44 +201,13 @@ impl EventHandler for GameState {
     }
 
     fn update(self: &mut GameState, _ctx: &mut Context) -> GameResult<()> {
-        if Instant::now() - self.last_step >= self.step_delay {
-
-            if self.gameover { return Ok(()) }
-
-            if let Some(direction) = self.future_directions.pop_front() {
-                if !self.direction.is_opposite(direction) {
-                    self.direction = direction;
-                }
-            }
-            let (dx, dy) = match self.direction {
-                Direction::Up => (0, -1),
-                Direction::Down => (0, 1),
-                Direction::Left => (-1, 0),
-                Direction::Right => (1, 0),
-            };
-
-            let new_head = self.level.wraparound((
-                self.snake.front().unwrap().0 + dx,
-                self.snake.front().unwrap().1 + dy));
-            if self.snake.contains(&new_head) {
-                self.gameover = true;
-            } else if self.level.barriers.contains(&new_head) {
-                self.gameover = true;
-            } else {
-                self.snake.push_front(new_head);
-                if self.food == Some(new_head) {
-                    self.score += 1;
-                    println!("Score: {}", self.score);
-                    self.length += 5;
-                    self.food = Some(new_food(&self.snake, &self.level));
-                }
-                if self.snake.len() as u32 > self.length {
-                    self.snake.pop_back();
-                }
-            }
-            
-            // If we updated, we set our last_update to be now
-            self.last_step = Instant::now();
+        let mut dt = Instant::now() - self.last_step;
+        while dt >= self.step_delay {
+            dt -= self.step_delay;
+            self.update_single_step();
+            // If we updated, we set our last_update to the time at which the
+            // update took place.
+            self.last_step = Instant::now() - dt;
         }
         Ok(())
     }
