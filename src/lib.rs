@@ -2,7 +2,7 @@
 extern crate rand;
 extern crate ggez;
 
-use ggez::{Context, GameResult};
+use ggez::{Context, GameResult, GameError};
 use ggez::event::{EventHandler};
 use ggez::input::keyboard::{KeyCode, KeyMods};
 use ggez::graphics::{self, Rect, Color};
@@ -14,6 +14,8 @@ use rand::Rng;
 
 
 pub const MAX_PLAYGROUND_SIZE: (u32, u32) = (50, 40);
+const SNAKE_START_LENGTH: u32 = 10;
+const START_DELAY_MS: u64 = 162;
 
 
 #[derive(PartialEq, Clone, Copy)]
@@ -36,6 +38,7 @@ impl Direction {
 pub type Tile = (i32, i32);
 
 pub struct Level {
+    id: u32,
     pub width: u32,
     pub height: u32,
     start_tile: Tile,
@@ -44,11 +47,14 @@ pub struct Level {
 }
 
 impl Level {
-    fn from_file(filename: &str) -> GameResult<Level> {
+    fn from_id(id: u32) -> GameResult<Level> {
+        let filename = format!("resources/levels/{}", id);
         let mut f = File::open(filename)?;
         let mut contents = String::new();
         f.read_to_string(&mut contents)?;
+        let mut start_dirs_count = 0u32;
         let mut level = Level {
+            id: id,
             width: 0,
             height: 0,
             start_tile: (0, 0),
@@ -57,10 +63,12 @@ impl Level {
         };
         for (y, line) in contents.lines().enumerate() {
             if level.width > 0 && line.len() as u32 != level.width {
-                panic!("Multiple widths in level file!")
+                return Err(GameError::ResourceLoadError(
+                    format!("Level {} is not rectangular.", id)))
             }
             else if line.len() as u32 > MAX_PLAYGROUND_SIZE.0 {
-                panic!("Level is too wide!")
+                return Err(GameError::ResourceLoadError(
+                    format!("Level {} is too big.", id)))
             }
             level.width = line.len() as u32;
             level.height = y as u32;
@@ -72,30 +80,42 @@ impl Level {
                     '<' => {
                         level.start_tile = tile;
                         level.start_direction = Direction::Left;
+                        start_dirs_count += 1;
                     },
                     '>' => {
                         level.start_tile = tile;
                         level.start_direction = Direction::Right;
+                        start_dirs_count += 1;
                     },
                     '^' => {
                         level.start_tile = tile;
                         level.start_direction = Direction::Up;
+                        start_dirs_count += 1;
                     },
                     'v' => {
                         level.start_tile = tile;
                         level.start_direction = Direction::Down;
+                        start_dirs_count += 1;
                     },
                     _ => {
-                        panic!("Invalid characters in level file: {:?}.", c)
+                        return Err(GameError::ResourceLoadError(
+                            format!("Level {} has an invalid character {}.", id, c)))
                     }
                 }
             }
         }
         level.height += 1;
         if level.height > MAX_PLAYGROUND_SIZE.1 {
-            panic!("Level is too high!")
+            return Err(GameError::ResourceLoadError(
+                format!("Level {} is too big.", id)))
         }
-        Ok(level)
+        match start_dirs_count {
+            0 => Err(GameError::ResourceLoadError(
+                format!("Level {} has no starting position.", id))),
+            1 => Ok(level),
+            _ => Err(GameError::ResourceLoadError(
+                format!("Level {} has multiple starting positions.", id))),
+        }
     }
 
     fn wraparound(self: &Level, tile: Tile) -> Tile {
@@ -133,22 +153,42 @@ pub struct GameState {
 
 impl GameState {
     pub fn new() -> GameResult<GameState> {
-        let level = Level::from_file("resources/levels/1")?;
+        let level = Level::from_id(1)?;
         let mut snake = VecDeque::new();
         let food = new_food(&snake, &level);
         snake.push_front(level.start_tile);
         Ok(GameState {
             score: 0,
             snake: snake,
-            length: 10,
+            length: SNAKE_START_LENGTH,
             direction: level.start_direction,
             future_directions: VecDeque::new(),
             food: Some(food),
+            // gate: None,
             gameover: false,
             level: level,
-            step_delay: Duration::from_millis(162),
+            // eaten_this_level: 0,
+            step_delay: Duration::from_millis(START_DELAY_MS),
             last_step: Instant::now(),
         })
+    }
+
+    pub fn next_level(&mut self) {
+        if let Ok(level) = Level::from_id(self.level.id + 1) {
+            let mut snake = VecDeque::new();
+            snake.push_front(level.start_tile);
+            let food = new_food(&snake, &level);
+            self.snake = snake;
+            self.length = SNAKE_START_LENGTH;
+            self.direction = level.start_direction;
+            self.future_directions = VecDeque::new();
+            self.food = Some(food);
+            // self.gate = None;
+            self.level = level;
+            // self.eaten_this_level = 0;
+            self.step_delay = Duration::from_millis(START_DELAY_MS);
+            self.last_step = Instant::now();
+        };
     }
 
     pub fn set_direction(&mut self, direction: Direction) {
