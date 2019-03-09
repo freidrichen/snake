@@ -197,7 +197,7 @@ impl GameState {
         self.future_directions.push_back(direction);
     }
 
-    fn update_single_step(&mut self, ctx: &Context) {
+    fn update_single_step(&mut self) {
         if self.gameover { return }
 
         if let Some(direction) = self.future_directions.pop_front() {
@@ -226,8 +226,6 @@ impl GameState {
                 self.eaten_this_level += 1;
                 self.step_delay = self.step_delay.mul_f64(0.95);
                 println!("Score: {}; Speed: {:?}", self.score, self.step_delay);
-                println!("Delta: {:?}", ggez::timer::delta(ctx));
-                println!("Average delta: {:?}", ggez::timer::average_delta(ctx));
                 self.length += 5;
                 self.food = Some(new_food(&self.snake, &self.level));
                 if self.gate.is_none() && self.eaten_this_level > 10 {
@@ -251,11 +249,11 @@ impl EventHandler for GameState {
         Ok(())
     }
 
-    fn update(self: &mut GameState, ctx: &mut Context) -> GameResult<()> {
+    fn update(self: &mut GameState, _ctx: &mut Context) -> GameResult<()> {
         let mut dt = Instant::now() - self.last_step;
         while dt >= self.step_delay {
             dt -= self.step_delay;
-            self.update_single_step(ctx);
+            self.update_single_step();
             // If we updated, we set our last_update to the time at which the
             // update took place.
             self.last_step = Instant::now() - dt;
