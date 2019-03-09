@@ -155,7 +155,7 @@ impl GameState {
         self.future_directions.push_back(direction);
     }
 
-    fn update_single_step(&mut self) {
+    fn update_single_step(&mut self, ctx: &Context) {
         if self.gameover { return }
 
         if let Some(direction) = self.future_directions.pop_front() {
@@ -183,6 +183,8 @@ impl GameState {
                 self.score += 1;
                 self.step_delay = self.step_delay.mul_f64(0.95);
                 println!("Score: {}; Speed: {:?}", self.score, self.step_delay);
+                println!("Delta: {:?}", ggez::timer::delta(ctx));
+                println!("Average delta: {:?}", ggez::timer::average_delta(ctx));
                 self.length += 5;
                 self.food = Some(new_food(&self.snake, &self.level));
             }
@@ -194,17 +196,17 @@ impl GameState {
 }
 
 impl EventHandler for GameState {
-    fn draw(self: &mut GameState, context: &mut Context) -> GameResult<()> {
-        draw(self, context)?;
+    fn draw(self: &mut GameState, ctx: &mut Context) -> GameResult<()> {
+        draw(self, ctx)?;
         ggez::timer::yield_now();
         Ok(())
     }
 
-    fn update(self: &mut GameState, _ctx: &mut Context) -> GameResult<()> {
+    fn update(self: &mut GameState, ctx: &mut Context) -> GameResult<()> {
         let mut dt = Instant::now() - self.last_step;
         while dt >= self.step_delay {
             dt -= self.step_delay;
-            self.update_single_step();
+            self.update_single_step(ctx);
             // If we updated, we set our last_update to the time at which the
             // update took place.
             self.last_step = Instant::now() - dt;
@@ -212,11 +214,10 @@ impl EventHandler for GameState {
         Ok(())
     }
 
-    fn key_down_event(&mut self, _ctx: &mut Context, keycode: KeyCode,
+    fn key_down_event(&mut self, ctx: &mut Context, keycode: KeyCode,
                       _keymod: KeyMods, _repeat: bool) {
         match keycode {
-            // Event::Quit {..} => break 'main_loop,
-            // Event::KeyDown { keycode: Some(KeyCode::Escape), .. } => break 'main_loop,
+            KeyCode::Escape => ggez::quit(ctx),
             KeyCode::Up => self.set_direction(Direction::Up),
             KeyCode::Down => self.set_direction(Direction::Down),
             KeyCode::Left => self.set_direction(Direction::Left),
