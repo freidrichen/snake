@@ -1,25 +1,17 @@
 Bugs:
+- Occational graphic freezes, (until keypress)?
 
 Features:
 - Switch to ggez!
-  - Move stuff into ggez boilerplate
   - Double check if things are in the correct modules/files
+- Draw score
+- Death screen and restart key
+- Improve increasing speed further:
+  - Cap speed
+    - Cap early levels earlier?
+  - Scale score by speed and/or level?
 
 Possible features:
-- Fearlessly multithread graphics <-> game logic
-- Death screen and restart key
-- Score
-  - Render as text in ggez
-- Better controls
-  - Be a little extra lenient when player is only _slightly_ early or _slightly_
-    late and would have died. Much easier when using ggez.
-- Sprites
-  - Snake
-  - Walls
-- Sound
-- Animations
-  - Death animation
-- Intro screen
 - Power-ups
   - Pick food from range
   - Slow down
@@ -29,8 +21,33 @@ Possible features:
   - Offspring (normal snake pauses, offspring goes out in its stead. If offspring collides with parent: merge instead of dying)
   - See future food
   - Also power ups that increase risk and reward
+- Better controls
+  - Be a little extra lenient when player is only _slightly_ early or _slightly_
+    late and would have died. Much easier when using ggez.
+  - Max length for direction queue?
+- Intro screen
+- Animations
+  - Death animation
+  - Level transition
+- Sprites
+  - Snake
+  - Walls
+- Sound
+- Multiple levels
+  - Handle better when there is no next level
 
 Idiomatic code:
+- Code structure for creating GameState and changing level
+  - start_level method which transfers info from level struct to game_state
+    struct! Does this really help?
+  - GameStateBuilder? Allows creating a GameState e.g. without a level and then
+    setting a level without allowing the GameState to not have a level, with the
+    trade off there will be two almost identical change_level methods.
+  - LevelID and global levels? Then setting a temporary level id is very light
+    weight and doesn't feel so off. Seems hard with threads?
+- Snake as a sub struct of game state?
 - Error handling
   - Is there a head tile in the snake?
-- Add unit tests e.g. to level loading
+- Unit tests
+  - Wraparound
+  - Level loading
