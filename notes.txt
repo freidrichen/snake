@@ -13,9 +13,6 @@ Possible features:
 - Better controls
   - Be a little extra lenient when player is only _slightly_ early or _slightly_
     late and would have died. Much easier when using ggez.
-- Increasing speed
-  - Much easier when using ggez.
-- Gate to next level
 - Sprites
   - Snake
   - Walls
@@ -31,13 +28,9 @@ Possible features:
   - Coil (shrink to size 1 and then grow again)
   - Offspring (normal snake pauses, offspring goes out in its stead. If offspring collides with parent: merge instead of dying)
   - See future food
+  - Also power ups that increase risk and reward
 
 Idiomatic code:
-- Pass a duration to GameState.update which corresponds to time since last step? (Makes it very easy to implement increasing speed). ggez fixes this.
 - Error handling
   - Is there a head tile in the snake?
-  - IO and level syntax when loading levels
-  - SDL:
-    - Initiation
-    - Drawing
 - Add unit tests e.g. to level loading

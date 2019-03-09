@@ -145,8 +145,10 @@ pub struct GameState {
     direction: Direction,
     future_directions: VecDeque<Direction>,
     pub food: Option<Tile>,
+    pub gate: Option<Tile>,
     gameover: bool,
     pub level: Level,
+    eaten_this_level: u32,
     step_delay: Duration,
     last_step: Instant,
 }
@@ -164,10 +166,10 @@ impl GameState {
             direction: level.start_direction,
             future_directions: VecDeque::new(),
             food: Some(food),
-            // gate: None,
+            gate: None,
             gameover: false,
             level: level,
-            // eaten_this_level: 0,
+            eaten_this_level: 0,
             step_delay: Duration::from_millis(START_DELAY_MS),
             last_step: Instant::now(),
         })
@@ -183,9 +185,9 @@ impl GameState {
             self.direction = level.start_direction;
             self.future_directions = VecDeque::new();
             self.food = Some(food);
-            // self.gate = None;
+            self.gate = None;
             self.level = level;
-            // self.eaten_this_level = 0;
+            self.eaten_this_level = 0;
             self.step_delay = Duration::from_millis(START_DELAY_MS);
             self.last_step = Instant::now();
         };
@@ -221,12 +223,19 @@ impl GameState {
             self.snake.push_front(new_head);
             if self.food == Some(new_head) {
                 self.score += 1;
+                self.eaten_this_level += 1;
                 self.step_delay = self.step_delay.mul_f64(0.95);
                 println!("Score: {}; Speed: {:?}", self.score, self.step_delay);
                 println!("Delta: {:?}", ggez::timer::delta(ctx));
                 println!("Average delta: {:?}", ggez::timer::average_delta(ctx));
                 self.length += 5;
                 self.food = Some(new_food(&self.snake, &self.level));
+                if self.gate.is_none() && self.eaten_this_level > 10 {
+                    self.gate = Some(new_food(&self.snake, &self.level));
+                }
+            }
+            if self.gate == Some(new_head) {
+                self.next_level();
             }
             if self.snake.len() as u32 > self.length {
                 self.snake.pop_back();
@@ -262,6 +271,7 @@ impl EventHandler for GameState {
             KeyCode::Down => self.set_direction(Direction::Down),
             KeyCode::Left => self.set_direction(Direction::Left),
             KeyCode::Right => self.set_direction(Direction::Right),
+            KeyCode::N => self.next_level(),
             _ => {},
         }
     }
@@ -310,6 +320,7 @@ pub fn draw(game_state: &GameState, ctx: &mut Context) -> GameResult<()> {
     let background_color = Color::from_rgb(0x4A, 0x99, 0x4C);
     let snake_color = Color::from_rgb(0xEF, 0xCD, 0x37);
     let food_color = Color::from_rgb(0x88, 0x2F, 0x67);
+    let gate_color = Color::from_rgb(0xF4, 0x93, 0x90);
     let barrier_color = Color::from_rgb(0x34, 0x34, 0x34);
 
     graphics::clear(ctx, outside_color);
@@ -333,6 +344,10 @@ pub fn draw(game_state: &GameState, ctx: &mut Context) -> GameResult<()> {
 
     if let Some(tile) = game_state.food {
         draw_tile(ctx, tile, food_color)?
+    }
+
+    if let Some(tile) = game_state.gate {
+        draw_tile(ctx, tile, gate_color)?
     }
 
     graphics::present(ctx)?;
